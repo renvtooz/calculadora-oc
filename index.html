@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Calculadora de overclock y undervolt para las GPU mas vendidas.">
+<title>Calculadora de Overclock GPU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@400;500;600&family=Chivo:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --ground:#F3F5F6;
+  --panel:#FFFFFF;
+  --panel-2:#EBEEF0;
+  --line:#D3DADD;
+  --line-soft:#E5EAEC;
+  --ink:#0E1A20;
+  --ink-2:#41545C;
+  --ink-3:#71858D;
+  --cool:#0B717D;
+  --cool-soft:#DBEDEF;
+  --hot:#B5501A;
+  --danger:#A5342A;
+  --ok:#2E6A44;
+  --shadow:0 1px 2px rgba(14,26,32,.06), 0 8px 22px -16px rgba(14,26,32,.3);
+  --mono:"Chivo Mono",ui-monospace,Consolas,monospace;
+  --sans:"Chivo",system-ui,-apple-system,Segoe UI,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E171C;
+    --panel:#152128;
+    --panel-2:#1B2A31;
+    --line:#293A42;
+    --line-soft:#213038;
+    --ink:#E6EEF0;
+    --ink-2:#A6BAC1;
+    --ink-3:#788D96;
+    --cool:#45C8D3;
+    --cool-soft:#112F35;
+    --hot:#F0964B;
+    --danger:#F0705F;
+    --ok:#63C48C;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E171C;
+  --panel:#152128;
+  --panel-2:#1B2A31;
+  --line:#293A42;
+  --line-soft:#213038;
+  --ink:#E6EEF0;
+  --ink-2:#A6BAC1;
+  --ink-3:#788D96;
+  --cool:#45C8D3;
+  --cool-soft:#112F35;
+  --hot:#F0964B;
+  --danger:#F0705F;
+  --ok:#63C48C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -18px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1140px;margin:0 auto;padding:26px 18px 48px}
+
+.masthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+h1{font-family:var(--sans);font-weight:900;font-size:clamp(30px,5vw,44px);line-height:1;letter-spacing:-.025em;margin:0}
+.masthead p{margin:0;color:var(--ink-3);font-size:13.5px}
+
+.quickbar{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 20px}
+.chip{font-family:var(--mono);font-size:12px;padding:5px 10px;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);border-radius:2px;cursor:pointer;transition:border-color .15s,color .15s}
+.chip:hover{border-color:var(--cool);color:var(--cool)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.chip:focus-visible{outline:2px solid var(--cool);outline-offset:2px}
+
+.bench{display:grid;grid-template-columns:minmax(270px,308px) 1fr;gap:22px;align-items:start}
+@media (max-width:880px){.bench{grid-template-columns:1fr}}
+
+.console{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);position:sticky;top:18px}
+@media (max-width:880px){.console{position:static}}
+.group{padding:13px 15px;border-bottom:1px solid var(--line-soft)}
+.group:last-child{border-bottom:0}
+.glabel{font-weight:700;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);display:block;margin:0 0 8px}
+fieldset{border:0;margin:0;padding:0}
+legend{padding:0}
+select{width:100%;font-family:var(--mono);font-size:13px;padding:8px 9px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:2px}
+select:focus-visible{outline:2px solid var(--cool);outline-offset:2px}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:10px;background:var(--line-soft)}
+.specs div{background:var(--panel);padding:6px 8px}
+.specs dt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.specs dd{margin:1px 0 0;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg label{flex:1;position:relative;min-width:0}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:block;text-align:center;padding:7px 3px;font-size:12.5px;font-weight:500;cursor:pointer;border-right:1px solid var(--line);color:var(--ink-2);white-space:nowrap;transition:background .15s,color .15s}
+.seg label:last-child span{border-right:0}
+.seg input:checked + span{background:var(--ink);color:var(--ground)}
+.seg input:focus-visible + span{outline:2px solid var(--cool);outline-offset:-2px}
+
+.slider-row{display:flex;align-items:baseline;justify-content:space-between}
+.slider-row output{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--hot);margin-top:4px}
+input[type=range]:focus-visible{outline:2px solid var(--cool);outline-offset:4px}
+
+.readout{display:grid;gap:18px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+.panel > header{display:flex;align-items:baseline;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line-soft)}
+.panel > header h2{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0;color:var(--ink-2)}
+.panel > header .hint{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-soft)}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--panel);padding:12px 14px 13px}
+.tile .k{font-size:10px;font-weight:500;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.tile .v{font-family:var(--mono);font-weight:600;font-size:26px;line-height:1.1;margin-top:2px;font-variant-numeric:tabular-nums}
+.tile .u{font-size:14px;font-weight:400;color:var(--ink-3)}
+.tile .d{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:2px}
+.tile.gain .v{color:var(--cool)}
+.tile.heat .v{color:var(--hot)}
+
+.risk{padding:11px 16px 13px;border-top:1px solid var(--line-soft);display:grid;gap:7px}
+.risk .top{display:flex;align-items:baseline}
+.risk .top strong{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.risk .top .lvl{font-family:var(--mono);font-size:12.5px;margin-left:auto;font-variant-numeric:tabular-nums}
+.meter{display:flex;gap:3px;height:8px}
+.meter i{flex:1;background:var(--line-soft);border-radius:1px}
+.meter i.on{background:var(--cool)}
+.meter i.on.mid{background:var(--hot)}
+.meter i.on.hi{background:var(--danger)}
+.risk p{margin:0;font-size:12.5px;color:var(--danger)}
+.risk p:empty{display:none}
+
+.chartbox{padding:6px 8px 10px;overflow-x:auto}
+svg.vf{display:block;width:100%;height:auto;min-width:500px}
+svg.vf text{font-family:var(--mono);font-variant-numeric:tabular-nums}
+svg.vf text.ax{font-family:var(--sans);font-weight:700;letter-spacing:.13em}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:0 16px 12px;font-size:12px;color:var(--ink-2)}
+.legend b{display:inline-block;width:15px;height:0;border-top-width:2px;vertical-align:middle;margin-right:6px}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+.tablebox{overflow-x:auto}
+th,td{text-align:left;padding:8px 16px;border-bottom:1px solid var(--line-soft);vertical-align:baseline}
+thead th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+tbody tr:last-child td{border-bottom:0}
+td.val{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+td.val.hot{color:var(--hot)}
+td.val.cool{color:var(--cool)}
+td.arrow{font-family:var(--mono);color:var(--ink-3);white-space:nowrap}
+
+ol.proto{list-style:none;margin:0;padding:0;counter-reset:step}
+ol.proto li{counter-increment:step;display:grid;grid-template-columns:26px 1fr;gap:10px;padding:9px 16px;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+ol.proto li:last-child{border-bottom:0}
+ol.proto li::before{content:counter(step,decimal-leading-zero);font-family:var(--mono);font-size:11.5px;color:var(--cool);padding-top:2px}
+ol.proto code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);padding:1px 5px;border-radius:2px}
+
+.actions{display:flex;flex-wrap:wrap;gap:8px;padding:11px 16px;border-top:1px solid var(--line-soft)}
+button.act{font-family:var(--sans);font-weight:500;font-size:13px;padding:8px 14px;cursor:pointer;background:var(--ink);color:var(--ground);border:1px solid var(--ink);border-radius:2px}
+button.act.ghost{background:transparent;color:var(--ink-2);border-color:var(--line)}
+button.act:hover{opacity:.88}
+button.act:focus-visible{outline:2px solid var(--cool);outline-offset:2px}
+#copyState{font-family:var(--mono);font-size:11.5px;color:var(--ok);align-self:center}
+#memNote{padding:0 16px 12px;margin:0;font-size:12.5px;color:var(--ink-3)}
+#memNote:empty{display:none}
+
+footer.fine{margin-top:22px;font-size:12.5px;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <h1>Calculadora de Overclock</h1>
+    <p>35 GPU · valores de arranque, no perfiles verificados</p>
+  </header>
+
+  <div class="quickbar" id="quickbar"></div>
+
+  <div class="bench">
+
+    <form class="console" id="console" autocomplete="off">
+
+      <div class="group">
+        <label class="glabel" for="gpu">Tarjeta</label>
+        <select id="gpu"></select>
+        <dl class="specs" id="specs"></dl>
+      </div>
+
+      <fieldset class="group">
+        <legend class="glabel">Objetivo</legend>
+        <div class="seg">
+          <label><input type="radio" name="goal" value="perf" checked><span>Rendimiento</span></label>
+          <label><input type="radio" name="goal" value="eff"><span>Equilibrio</span></label>
+          <label><input type="radio" name="goal" value="quiet"><span>Undervolt</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="glabel">Refrigeración</legend>
+        <div class="seg">
+          <label><input type="radio" name="cooling" value="blower"><span>1 vent.</span></label>
+          <label><input type="radio" name="cooling" value="dual" checked><span>2 vent.</span></label>
+          <label><input type="radio" name="cooling" value="triple"><span>3 vent.</span></label>
+          <label><input type="radio" name="cooling" value="aio"><span>Líquida</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="glabel">Flujo del gabinete</legend>
+        <div class="seg">
+          <label><input type="radio" name="airflow" value="poor"><span>Pobre</span></label>
+          <label><input type="radio" name="airflow" value="normal" checked><span>Normal</span></label>
+          <label><input type="radio" name="airflow" value="good"><span>Bueno</span></label>
+        </div>
+      </fieldset>
+
+      <div class="group">
+        <div class="slider-row">
+          <span class="glabel" style="margin:0">Ambiente</span>
+          <output id="ambientOut" for="ambient">24 °C</output>
+        </div>
+        <input type="range" id="ambient" min="14" max="40" step="1" value="24" aria-label="Temperatura ambiente">
+      </div>
+
+      <fieldset class="group">
+        <legend class="glabel">Fuente</legend>
+        <div class="seg">
+          <label><input type="radio" name="psu" value="wide"><span>Holgada</span></label>
+          <label><input type="radio" name="psu" value="ok" checked><span>Justa</span></label>
+          <label><input type="radio" name="psu" value="tight"><span>Al límite</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend class="glabel">Agresividad</legend>
+        <div class="seg">
+          <label><input type="radio" name="tol" value="safe"><span>Suave</span></label>
+          <label><input type="radio" name="tol" value="balanced" checked><span>Media</span></label>
+          <label><input type="radio" name="tol" value="aggr"><span>Fuerte</span></label>
+        </div>
+      </fieldset>
+
+    </form>
+
+    <div class="readout">
+
+      <section class="panel">
+        <header><h2>Resultado</h2><span class="hint" id="scenarioHint"></span></header>
+        <div class="tiles" id="tiles"></div>
+        <div class="risk">
+          <div class="top"><strong>Riesgo</strong><span class="lvl" id="riskLvl"></span></div>
+          <div class="meter" id="riskMeter"></div>
+          <p id="riskNote"></p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <header><h2>Ajustes</h2><span class="hint" id="toolHint"></span></header>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>Control</th><th style="text-align:right">Valor</th></tr></thead>
+            <tbody id="settingsBody"></tbody>
+          </table>
+        </div>
+        <p id="memNote"></p>
+        <div class="actions">
+          <button type="button" class="act" id="copyBtn">Copiar perfil</button>
+          <button type="button" class="act ghost" id="fanBtn">Ventiladores</button>
+          <span id="copyState" role="status"></span>
+        </div>
+      </section>
+
+      <section class="panel" id="fanPanel" hidden>
+        <header><h2>Curva de ventiladores</h2></header>
+        <div class="tablebox"><table><tbody id="fanBody"></tbody></table></div>
+      </section>
+
+      <section class="panel">
+        <header><h2>Curva V/F</h2><span class="hint" id="chartHint"></span></header>
+        <div class="chartbox" id="chartbox"></div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="panel">
+        <header><h2>Validación</h2></header>
+        <ol class="proto" id="proto"></ol>
+      </section>
+
+      <section class="panel">
+        <header><h2>Si falla</h2></header>
+        <div class="tablebox"><table><tbody id="tshootBody"></tbody></table></div>
+      </section>
+
+    </div>
+  </div>
+
+  <footer class="fine">Cada chip es distinto: dos unidades del mismo modelo difieren hasta 150 MHz al mismo voltaje. Valida antes de darlo por bueno.</footer>
+</div>
+
+<script>
+"use strict";
+
+var GPUS = [
+  {id:"5090",n:"RTX 5090",v:"nv",arch:"Blackwell",vram:32,mem:"GDDR7",gbps:28,boost:2407,tdp:575,plMax:110,coreMax:400,memMax:2800,cs:.66,ms:.24,uvMv:900,uvF:1.04},
+  {id:"5080",n:"RTX 5080",v:"nv",arch:"Blackwell",vram:16,mem:"GDDR7",gbps:30,boost:2617,tdp:360,plMax:110,coreMax:420,memMax:3000,cs:.68,ms:.24,uvMv:900,uvF:1.04},
+  {id:"5070ti",n:"RTX 5070 Ti",v:"nv",arch:"Blackwell",vram:16,mem:"GDDR7",gbps:28,boost:2452,tdp:300,plMax:110,coreMax:400,memMax:2800,cs:.68,ms:.25,uvMv:900,uvF:1.05,top:true},
+  {id:"5070",n:"RTX 5070",v:"nv",arch:"Blackwell",vram:12,mem:"GDDR7",gbps:28,boost:2512,tdp:250,plMax:110,coreMax:380,memMax:2600,cs:.68,ms:.27,uvMv:900,uvF:1.05,top:true},
+  {id:"5060ti",n:"RTX 5060 Ti 16 GB",v:"nv",arch:"Blackwell",vram:16,mem:"GDDR7",gbps:28,boost:2572,tdp:180,plMax:106,coreMax:360,memMax:2400,cs:.66,ms:.30,uvMv:900,uvF:1.05},
+  {id:"5060",n:"RTX 5060",v:"nv",arch:"Blackwell",vram:8,mem:"GDDR7",gbps:28,boost:2497,tdp:145,plMax:105,coreMax:340,memMax:2400,cs:.66,ms:.30,uvMv:900,uvF:1.05,top:true},
+  {id:"4090",n:"RTX 4090",v:"nv",arch:"Ada Lovelace",vram:24,mem:"GDDR6X",gbps:21,boost:2520,tdp:450,plMax:110,coreMax:220,memMax:1400,cs:.62,ms:.22,uvMv:925,uvF:1.05},
+  {id:"4080s",n:"RTX 4080 Super",v:"nv",arch:"Ada Lovelace",vram:16,mem:"GDDR6X",gbps:23,boost:2550,tdp:320,plMax:110,coreMax:240,memMax:1400,cs:.65,ms:.22,uvMv:925,uvF:1.05},
+  {id:"4070tis",n:"RTX 4070 Ti Super",v:"nv",arch:"Ada Lovelace",vram:16,mem:"GDDR6X",gbps:21,boost:2610,tdp:285,plMax:110,coreMax:240,memMax:1400,cs:.66,ms:.24,uvMv:925,uvF:1.05},
+  {id:"4070s",n:"RTX 4070 Super",v:"nv",arch:"Ada Lovelace",vram:12,mem:"GDDR6X",gbps:21,boost:2475,tdp:220,plMax:110,coreMax:240,memMax:1400,cs:.66,ms:.26,uvMv:925,uvF:1.05,top:true},
+  {id:"4070",n:"RTX 4070",v:"nv",arch:"Ada Lovelace",vram:12,mem:"GDDR6X",gbps:21,boost:2475,tdp:200,plMax:110,coreMax:240,memMax:1400,cs:.66,ms:.26,uvMv:925,uvF:1.05,top:true},
+  {id:"4060ti",n:"RTX 4060 Ti 8 GB",v:"nv",arch:"Ada Lovelace",vram:8,mem:"GDDR6",gbps:18,boost:2535,tdp:160,plMax:106,coreMax:220,memMax:1300,cs:.60,ms:.34,uvMv:925,uvF:1.05},
+  {id:"4060",n:"RTX 4060",v:"nv",arch:"Ada Lovelace",vram:8,mem:"GDDR6",gbps:17,boost:2460,tdp:115,plMax:105,coreMax:220,memMax:1300,cs:.60,ms:.34,uvMv:925,uvF:1.05,top:true},
+  {id:"3090",n:"RTX 3090",v:"nv",arch:"Ampere",vram:24,mem:"GDDR6X",gbps:19.5,boost:1695,tdp:350,plMax:114,coreMax:150,memMax:800,cs:.62,ms:.20,uvMv:900,uvF:1.06},
+  {id:"3080",n:"RTX 3080 10 GB",v:"nv",arch:"Ampere",vram:10,mem:"GDDR6X",gbps:19,boost:1710,tdp:320,plMax:112,coreMax:150,memMax:800,cs:.64,ms:.22,uvMv:900,uvF:1.06},
+  {id:"3070",n:"RTX 3070",v:"nv",arch:"Ampere",vram:8,mem:"GDDR6",gbps:14,boost:1725,tdp:220,plMax:110,coreMax:150,memMax:1300,cs:.62,ms:.30,uvMv:900,uvF:1.06,top:true},
+  {id:"3060ti",n:"RTX 3060 Ti",v:"nv",arch:"Ampere",vram:8,mem:"GDDR6",gbps:14,boost:1665,tdp:200,plMax:110,coreMax:150,memMax:1300,cs:.62,ms:.30,uvMv:900,uvF:1.06,top:true},
+  {id:"3060",n:"RTX 3060 12 GB",v:"nv",arch:"Ampere",vram:12,mem:"GDDR6",gbps:15,boost:1777,tdp:170,plMax:108,coreMax:150,memMax:1300,cs:.64,ms:.28,uvMv:900,uvF:1.06,top:true},
+  {id:"3050",n:"RTX 3050 8 GB",v:"nv",arch:"Ampere",vram:8,mem:"GDDR6",gbps:14,boost:1777,tdp:130,plMax:105,coreMax:140,memMax:1200,cs:.64,ms:.28,uvMv:900,uvF:1.06},
+  {id:"1660s",n:"GTX 1660 Super",v:"nv",arch:"Turing",vram:6,mem:"GDDR6",gbps:14,boost:1785,tdp:125,plMax:110,coreMax:130,memMax:1100,cs:.66,ms:.26,uvMv:900,uvF:1.05,top:true},
+  {id:"1650",n:"GTX 1650",v:"nv",arch:"Turing",vram:4,mem:"GDDR6",gbps:12,boost:1665,tdp:75,plMax:100,coreMax:120,memMax:1000,cs:.66,ms:.26,uvMv:900,uvF:1.05},
+  {id:"9070xt",n:"RX 9070 XT",v:"amd",arch:"RDNA 4",vram:16,mem:"GDDR6",gbps:20,boost:2970,tdp:304,plMax:110,coreMax:3450,memMax:180,cs:.62,ms:.26,stockMv:1150,uvMv:1060,top:true},
+  {id:"9070",n:"RX 9070",v:"amd",arch:"RDNA 4",vram:16,mem:"GDDR6",gbps:20,boost:2520,tdp:220,plMax:110,coreMax:3150,memMax:180,cs:.62,ms:.26,stockMv:1120,uvMv:1030},
+  {id:"9060xt",n:"RX 9060 XT 16 GB",v:"amd",arch:"RDNA 4",vram:16,mem:"GDDR6",gbps:20,boost:3130,tdp:160,plMax:110,coreMax:3400,memMax:160,cs:.60,ms:.30,stockMv:1100,uvMv:1020,top:true},
+  {id:"7900xtx",n:"RX 7900 XTX",v:"amd",arch:"RDNA 3",vram:24,mem:"GDDR6",gbps:20,boost:2500,tdp:355,plMax:115,coreMax:3200,memMax:250,cs:.60,ms:.24,stockMv:1150,uvMv:1060},
+  {id:"7900gre",n:"RX 7900 GRE",v:"amd",arch:"RDNA 3",vram:16,mem:"GDDR6",gbps:18,boost:2245,tdp:260,plMax:110,coreMax:2900,memMax:400,cs:.55,ms:.40,stockMv:1150,uvMv:1050},
+  {id:"7800xt",n:"RX 7800 XT",v:"amd",arch:"RDNA 3",vram:16,mem:"GDDR6",gbps:19.5,boost:2430,tdp:263,plMax:115,coreMax:2900,memMax:250,cs:.60,ms:.28,stockMv:1150,uvMv:1060,top:true},
+  {id:"7700xt",n:"RX 7700 XT",v:"amd",arch:"RDNA 3",vram:12,mem:"GDDR6",gbps:18,boost:2544,tdp:245,plMax:115,coreMax:2950,memMax:250,cs:.60,ms:.28,stockMv:1150,uvMv:1060},
+  {id:"7600",n:"RX 7600",v:"amd",arch:"RDNA 3",vram:8,mem:"GDDR6",gbps:18,boost:2655,tdp:165,plMax:110,coreMax:3000,memMax:200,cs:.60,ms:.32,stockMv:1120,uvMv:1040,top:true},
+  {id:"6750xt",n:"RX 6750 XT",v:"amd",arch:"RDNA 2",vram:12,mem:"GDDR6",gbps:18,boost:2600,tdp:250,plMax:115,coreMax:2900,memMax:180,cs:.62,ms:.26,stockMv:1200,uvMv:1100},
+  {id:"6650xt",n:"RX 6650 XT",v:"amd",arch:"RDNA 2",vram:8,mem:"GDDR6",gbps:17.5,boost:2635,tdp:180,plMax:112,coreMax:2900,memMax:180,cs:.62,ms:.28,stockMv:1200,uvMv:1100,top:true},
+  {id:"6600",n:"RX 6600",v:"amd",arch:"RDNA 2",vram:8,mem:"GDDR6",gbps:14,boost:2491,tdp:132,plMax:110,coreMax:2750,memMax:180,cs:.62,ms:.28,stockMv:1150,uvMv:1060,top:true},
+  {id:"b580",n:"Arc B580",v:"intel",arch:"Battlemage",vram:12,mem:"GDDR6",gbps:19,boost:2670,tdp:190,plMax:112,coreMax:16,memMax:1000,cs:.58,ms:.28,uvMvOff:-40,top:true},
+  {id:"b570",n:"Arc B570",v:"intel",arch:"Battlemage",vram:10,mem:"GDDR6",gbps:19,boost:2500,tdp:150,plMax:110,coreMax:16,memMax:1000,cs:.58,ms:.28,uvMvOff:-40},
+  {id:"a750",n:"Arc A750",v:"intel",arch:"Alchemist",vram:8,mem:"GDDR6",gbps:16,boost:2400,tdp:225,plMax:110,coreMax:14,memMax:800,cs:.58,ms:.30,uvMvOff:-30}
+];
+
+var VENDOR = {
+  nv:{label:"NVIDIA GeForce", tool:"MSI Afterburner"},
+  amd:{label:"AMD Radeon", tool:"Adrenalin"},
+  intel:{label:"Intel Arc", tool:"Intel Graphics Software"}
+};
+var GOALT = {perf:"rendimiento", eff:"equilibrio", quiet:"undervolt"};
+var TOL  = {safe:{m:.70,label:"suave"}, balanced:{m:1,label:"media"}, aggr:{m:1.25,label:"fuerte"}};
+var COOL = {blower:{m:.86,base:78,label:"1 ventilador"}, dual:{m:1,base:72,label:"2 ventiladores"},
+            triple:{m:1.08,base:66,label:"3 ventiladores"}, aio:{m:1.16,base:58,label:"líquida"}};
+var AIR  = {poor:{m:.92,t:5,label:"pobre"}, normal:{m:1,t:0,label:"normal"}, good:{m:1.05,t:-3,label:"bueno"}};
+var PSU  = {wide:{pl:1,label:"holgada"}, ok:{pl:.6,label:"justa"}, tight:{pl:0,label:"al límite"}};
+
+function $(s){ return document.querySelector(s); }
+function clamp(x,a,b){ return Math.min(b, Math.max(a,x)); }
+function round(x,s){ return Math.round(x/s)*s; }
+function fmt(n){ return n.toLocaleString("es-ES"); }
+
+var state = {gpu:"4060", goal:"perf", cooling:"dual", airflow:"normal", ambient:24, psu:"ok", tol:"balanced"};
+try{
+  var saved = localStorage.getItem("oc-gpu");
+  if(saved && GPUS.some(function(g){ return g.id === saved; })) state.gpu = saved;
+}catch(e){}
+
+var sel = $("#gpu");
+["nv","amd","intel"].forEach(function(v){
+  var og = document.createElement("optgroup");
+  og.label = VENDOR[v].label;
+  GPUS.filter(function(g){ return g.v === v; }).forEach(function(g){
+    var o = document.createElement("option");
+    o.value = g.id;
+    o.textContent = g.n + "  ·  " + g.vram + " GB " + g.mem;
+    og.appendChild(o);
+  });
+  sel.appendChild(og);
+});
+
+$("#quickbar").innerHTML = GPUS.filter(function(g){ return g.top; }).map(function(g){
+  return '<button type="button" class="chip" data-id="' + g.id + '">' + g.n + '</button>';
+}).join("");
+
+function compute(){
+  var g = GPUS.filter(function(x){ return x.id === state.gpu; })[0];
+  var tol = TOL[state.tol], cool = COOL[state.cooling], air = AIR[state.airflow];
+  var uv = state.goal === "quiet";
+  var eff = state.goal === "eff";
+
+  var ambPen = 1 - clamp((state.ambient - 22) * .012, -.10, .22);
+  var env = clamp(cool.m * air.m * ambPen, .74, 1.18);
+
+  var plTarget;
+  if(uv)       plTarget = Math.max(80, Math.round(g.plMax * .80));
+  else if(eff) plTarget = Math.round(100 + (g.plMax - 100) * .35 * PSU[state.psu].pl);
+  else         plTarget = Math.round(100 + (g.plMax - 100) * clamp(tol.m, .6, 1) * PSU[state.psu].pl);
+  plTarget = clamp(plTarget, uv ? 70 : 100, g.plMax);
+  var plHead = g.plMax > 100 ? (plTarget - 100) / (g.plMax - 100) : 0;
+
+  var goalCoreM = uv ? .55 : (eff ? .80 : 1);
+  var coreValue, coreLabel, effClock;
+  if(g.v === "amd"){
+    var target = round(g.boost + (g.coreMax - g.boost) * tol.m * env * goalCoreM, 5);
+    effClock = target;
+    coreValue = fmt(target) + " MHz";
+    coreLabel = "Frecuencia máxima";
+  } else if(g.v === "intel"){
+    var boostPct = clamp(g.coreMax * tol.m * env * goalCoreM, 2, g.coreMax);
+    effClock = Math.round(g.boost * (1 + boostPct / 100));
+    coreValue = "+" + boostPct.toFixed(0) + " %";
+    coreLabel = "Aumento de rendimiento";
+  } else {
+    var off = round(g.coreMax * tol.m * env * goalCoreM, 15);
+    effClock = g.boost + off;
+    coreValue = "+" + fmt(off) + " MHz";
+    coreLabel = "Core Clock";
+  }
+
+  var memValue, memDelta, memLabel, memNote = "";
+  if(g.v === "amd"){
+    var stockMemA = Math.round(g.gbps * 125);
+    var offA = round(g.memMax * tol.m * (uv ? .6 : 1) * (.5 + .5 * env), 10);
+    memValue = fmt(stockMemA + offA) + " MHz";
+    memDelta = offA / stockMemA;
+    memLabel = "Memoria";
+    memNote = "Fast Timings corrige errores en silencio: si el rendimiento baja en vez de subir, resta 50 MHz.";
+  } else {
+    var stockMemN = Math.round(g.gbps * 500);
+    var offN = round(g.memMax * tol.m * (uv ? .6 : 1) * (.55 + .45 * env), 50);
+    memValue = "+" + fmt(offN) + " MHz";
+    memDelta = offN / stockMemN;
+    memLabel = "Memory Clock";
+    if(g.mem === "GDDR6X") memNote = "GDDR6X corrige errores en silencio: pasarse cuesta FPS sin mostrar un solo artefacto. Guíate por la puntuación.";
+  }
+
+  var coreDelta = (effClock - g.boost) / g.boost;
+  var sustain = clamp(.68 + .32 * plHead, .68, 1);
+  var gain = (coreDelta * g.cs * sustain + memDelta * g.ms) * 100;
+  if(uv) gain = clamp(gain * .35 - .6, -2, 2.5);
+  gain = clamp(gain, -2, 14);
+
+  var powerW = Math.round(g.tdp * plTarget / 100 * (uv ? .97 : 1));
+  var temp = cool.base + (state.ambient - 22) * .85 + air.t + (plTarget - 100) * .22 + coreDelta * 22;
+  if(uv) temp -= 9;
+  temp = Math.round(clamp(temp, 38, 96));
+
+  var ratioCore = g.v === "amd"
+    ? (effClock - g.boost) / (g.coreMax - g.boost)
+    : (effClock - g.boost) / g.coreMax;
+  var memCap = g.v === "amd" ? g.memMax / (g.gbps * 125) : g.memMax / (g.gbps * 500);
+  var ratioMem = memCap ? memDelta / memCap : 0;
+  var risk = ((ratioCore + ratioMem) / 2) * 58
+           + (temp > 80 ? (temp - 80) * 3.2 : 0)
+           + (plTarget >= g.plMax && !uv ? 8 : 0)
+           + (state.psu === "tight" && plTarget > 100 ? 12 : 0);
+  if(uv) risk = Math.min(risk, 24);
+  risk = Math.round(clamp(risk, 3, 100));
+
+  return {g:g, uv:uv, eff:eff, plTarget:plTarget, coreValue:coreValue, coreLabel:coreLabel,
+          effClock:effClock, memValue:memValue, memLabel:memLabel, memNote:memNote,
+          gain:gain, powerW:powerW, temp:temp, risk:risk};
+}
+
+function drawCurve(r){
+  var g = r.g;
+  var dom = g.v === "amd" ? [820,1220] : (g.v === "intel" ? [800,1160] : [700,1100]);
+  var W = 680, H = 280, ml = 62, mr = 20, mt = 14, mb = 40;
+  var iw = W - ml - mr, ih = H - mt - mb;
+  var peakV = dom[1] - (g.v === "amd" ? 70 : 50);
+
+  function stockAt(v){
+    var t = clamp((v - dom[0]) / (peakV - dom[0]), 0, 1);
+    return g.boost * (0.72 + 0.28 * Math.pow(t, 0.68));
+  }
+  var uvV = g.v === "amd" ? g.uvMv : (g.v === "intel" ? dom[1] + g.uvMvOff - 60 : g.uvMv);
+  var lift = r.effClock - g.boost;
+  function tunedAt(v){
+    var base = stockAt(v) + lift;
+    return r.uv ? Math.min(base, stockAt(uvV) + lift) : base;
+  }
+
+  var yMin = round(g.boost * 0.66, 100);
+  var yMax = round(Math.max(r.effClock, tunedAt(peakV)) * 1.07, 100);
+  function X(v){ return ml + (v - dom[0]) / (dom[1] - dom[0]) * iw; }
+  function Y(f){ return mt + (1 - (f - yMin) / (yMax - yMin)) * ih; }
+  function path(fn){
+    var d = "";
+    for(var v = dom[0]; v <= dom[1]; v += 5){ d += (d ? "L" : "M") + X(v).toFixed(1) + " " + Y(fn(v)).toFixed(1); }
+    return d;
+  }
+
+  var s = '<svg class="vf" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Frecuencia frente a tensión: curva de fábrica y curva ajustada">';
+  var yStep = round((yMax - yMin) / 4, 50) || 100;
+  for(var f = yMin; f <= yMax + 1; f += yStep){
+    var yy = Y(f).toFixed(1);
+    s += '<line x1="' + ml + '" y1="' + yy + '" x2="' + (W - mr) + '" y2="' + yy + '" stroke="var(--line-soft)" stroke-width="1"/>';
+    s += '<text x="' + (ml - 10) + '" y="' + (Y(f) + 4).toFixed(1) + '" text-anchor="end" fill="var(--ink-3)" font-size="11">' + fmt(Math.round(f)) + '</text>';
+  }
+  for(var v2 = dom[0]; v2 <= dom[1]; v2 += 100){
+    var xx = X(v2).toFixed(1);
+    s += '<line x1="' + xx + '" y1="' + mt + '" x2="' + xx + '" y2="' + (H - mb) + '" stroke="var(--line-soft)" stroke-width="1"/>';
+    s += '<text x="' + xx + '" y="' + (H - mb + 18) + '" text-anchor="middle" fill="var(--ink-3)" font-size="11">' + v2 + '</text>';
+  }
+  s += '<line x1="' + ml + '" y1="' + (H - mb) + '" x2="' + (W - mr) + '" y2="' + (H - mb) + '" stroke="var(--line)" stroke-width="1.5"/>';
+  s += '<line x1="' + ml + '" y1="' + mt + '" x2="' + ml + '" y2="' + (H - mb) + '" stroke="var(--line)" stroke-width="1.5"/>';
+  s += '<text class="ax" x="' + (W - mr) + '" y="' + (H - 5) + '" text-anchor="end" fill="var(--ink-3)" font-size="10">mV</text>';
+  s += '<text class="ax" transform="translate(15,' + (mt + ih / 2) + ') rotate(-90)" text-anchor="middle" fill="var(--ink-3)" font-size="10">MHz</text>';
+  s += '<path d="' + path(stockAt) + '" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="5 4"/>';
+  s += '<path d="' + path(tunedAt) + '" fill="none" stroke="' + (r.uv ? "var(--cool)" : "var(--hot)") + '" stroke-width="2.6" stroke-linejoin="round"/>';
+
+  var opV = r.uv ? uvV : peakV;
+  var opF = tunedAt(opV);
+  var right = X(opV) > W - 170;
+  var lx = right ? X(opV) - 12 : X(opV) + 12;
+  var anchor = right ? "end" : "start";
+  s += '<circle cx="' + X(opV).toFixed(1) + '" cy="' + Y(opF).toFixed(1) + '" r="5" fill="var(--panel)" stroke="' + (r.uv ? "var(--cool)" : "var(--hot)") + '" stroke-width="2.6"/>';
+  s += '<text x="' + lx.toFixed(1) + '" y="' + (Y(opF) - 10).toFixed(1) + '" text-anchor="' + anchor + '" fill="var(--ink)" font-size="12.5" font-weight="600">' + fmt(Math.round(opF)) + ' MHz</text>';
+  s += '<text x="' + lx.toFixed(1) + '" y="' + (Y(opF) + 15).toFixed(1) + '" text-anchor="' + anchor + '" fill="var(--ink-3)" font-size="11">@ ' + Math.round(opV) + ' mV</text>';
+  s += '</svg>';
+  return s;
+}
+
+function render(){
+  var r = compute();
+  var g = r.g;
+  sel.value = g.id;
+  try{ localStorage.setItem("oc-gpu", g.id); }catch(e){}
+
+  var chips = document.querySelectorAll("#quickbar .chip");
+  for(var i = 0; i < chips.length; i++){
+    chips[i].setAttribute("aria-pressed", chips[i].getAttribute("data-id") === g.id ? "true" : "false");
+  }
+
+  $("#specs").innerHTML = [
+    ["Arquitectura", g.arch],
+    ["Memoria", g.vram + " GB " + g.mem],
+    ["Boost", fmt(g.boost) + " MHz"],
+    ["TGP", g.tdp + " W"]
+  ].map(function(p){ return '<div><dt>' + p[0] + '</dt><dd>' + p[1] + '</dd></div>'; }).join("");
+
+  var deltaW = r.powerW - g.tdp;
+  $("#tiles").innerHTML = [
+    {c:"gain", k:"Rendimiento", v:(r.gain >= 0 ? "+" : "") + r.gain.toFixed(1), u:"%", d:"1440p"},
+    {c:"heat", k:"Temperatura", v:String(r.temp), u:"°C", d:"núcleo"},
+    {c:"", k:"Consumo", v:fmt(r.powerW), u:"W", d:(deltaW >= 0 ? "+" : "") + deltaW + " W"},
+    {c:"", k:"Límite energía", v:String(r.plTarget), u:"%", d:"tope " + g.plMax + " %"}
+  ].map(function(t){
+    return '<div class="tile ' + t.c + '"><div class="k">' + t.k + '</div><div class="v">' + t.v +
+           '<span class="u"> ' + t.u + '</span></div><div class="d">' + t.d + '</div></div>';
+  }).join("");
+
+  $("#scenarioHint").textContent = GOALT[state.goal] + " · " + state.ambient + " °C";
+
+  var lvl = r.risk < 34 ? "Bajo" : r.risk < 67 ? "Moderado" : "Alto";
+  var cls = r.risk < 34 ? "" : r.risk < 67 ? "mid" : "hi";
+  $("#riskLvl").textContent = lvl + " · " + r.risk + "/100";
+  var seg = "", on = Math.round(r.risk / 100 * 14);
+  for(var k = 0; k < 14; k++) seg += '<i class="' + (k < on ? "on " + cls : "") + '"></i>';
+  $("#riskMeter").innerHTML = seg;
+
+  var warn = "";
+  if(!r.uv && r.temp >= 84) warn = "Temperatura en zona de recorte térmico: arregla el flujo de aire antes de subir relojes.";
+  else if(state.psu === "tight" && r.plTarget > 100) warn = "Con la fuente al límite no se sube energía: los picos superan de largo el consumo medio.";
+  $("#riskNote").textContent = warn;
+
+  $("#chartbox").innerHTML = drawCurve(r);
+  $("#chartHint").textContent = g.arch;
+  $("#legend").innerHTML =
+    '<span><b style="border-top-style:dashed;border-top-color:var(--ink-3)"></b>Fábrica</span>' +
+    '<span><b style="border-top-style:solid;border-top-color:' + (r.uv ? "var(--cool)" : "var(--hot)") + '"></b>' +
+    (r.uv ? "Con undervolt" : "Ajustada") + '</span>';
+
+  var rows = [
+    {n:r.coreLabel, v:r.coreValue, c:"hot"},
+    {n:r.memLabel, v:r.memValue, c:"hot"},
+    {n:"Límite de energía", v:r.plTarget + " %", c:"hot"}
+  ];
+  if(g.v === "nv"){
+    rows.push({n:"Límite de temperatura", v:(r.uv ? "79" : "83") + " °C", c:""});
+    if(r.uv) rows.push({n:"Curva V/F (Ctrl+F)", v:g.uvMv + " mV @ " + fmt(round(g.boost * g.uvF, 15)) + " MHz", c:"cool"});
+  } else if(g.v === "amd"){
+    rows.push({n:"Voltaje del núcleo", v:(r.uv ? g.uvMv : Math.round((g.stockMv + g.uvMv) / 2)) + " mV", c:"cool"});
+    rows.push({n:"Frecuencia mínima", v:fmt(round(g.boost * 0.6, 10)) + " MHz", c:""});
+    rows.push({n:"Fast Timings", v:"Activado", c:""});
+  } else {
+    rows.push({n:"Desplazamiento de voltaje", v:g.uvMvOff + " mV", c:"cool"});
+    rows.push({n:"Resizable BAR (BIOS)", v:"Activado", c:""});
+  }
+  $("#settingsBody").innerHTML = rows.map(function(x){
+    return '<tr><td>' + x.n + '</td><td class="val ' + x.c + '">' + x.v + '</td></tr>';
+  }).join("");
+  $("#memNote").textContent = r.memNote;
+  $("#toolHint").textContent = VENDOR[g.v].tool;
+
+  var quiet = r.uv || state.goal === "eff";
+  var fan = [[40, quiet ? 0 : 30], [60, quiet ? 40 : 52], [75, quiet ? 62 : 75], [85, quiet ? 80 : 95]];
+  $("#fanBody").innerHTML = fan.map(function(f){
+    return '<tr><td class="val" style="text-align:left">' + f[0] + ' °C</td><td class="val hot">' +
+           (f[1] === 0 ? "0 % (parado)" : f[1] + " %") + '</td></tr>';
+  }).join("");
+
+  var coreStep = g.v === "amd" ? "25 MHz" : (g.v === "intel" ? "2 %" : "15 MHz");
+  var memStep = g.v === "amd" ? "50 MHz" : "100 MHz";
+  $("#proto").innerHTML = [
+    "Mide de fábrica: <code>Steel Nomad</code> + <code>HWiNFO64</code> — puntuación, temperatura, reloj sostenido.",
+    "Sube solo el límite a <code>" + r.plTarget + " %</code> y la curva de ventiladores. Vuelve a medir.",
+    "Núcleo en pasos de " + coreStep + " hasta <code>" + r.coreValue + "</code>, 10 min de carga por escalón.",
+    "Memoria en pasos de " + memStep + " hasta <code>" + r.memValue + "</code> + <code>memtest_vulkan</code> 20 min.",
+    "Dos horas de juego real, gabinete cerrado, a la hora más calurosa del día."
+  ].map(function(s){ return '<li><div>' + s + '</div></li>'; }).join("");
+
+  $("#tshootBody").innerHTML = [
+    ["Driver reiniciado o pantalla negra", "núcleo −" + (g.v === "amd" ? "50" : "30") + " MHz"],
+    ["Artefactos o texturas rotas", "memoria −" + (g.v === "amd" ? "100" : "200") + " MHz"],
+    ["El juego se cierra sin mensaje", "memoria de fábrica una sesión"],
+    ["Menos puntuación tras subir memoria", "vuelve al valor anterior"],
+    ["El reloj cae tras unos minutos", "mira el motivo del recorte en HWiNFO"]
+  ].map(function(t){
+    return '<tr><td>' + t[0] + '</td><td class="arrow">→ ' + t[1] + '</td></tr>';
+  }).join("");
+
+  window.__profile = r;
+}
+
+sel.addEventListener("change", function(e){ state.gpu = e.target.value; render(); });
+$("#quickbar").addEventListener("click", function(e){
+  var b = e.target.closest(".chip");
+  if(!b) return;
+  state.gpu = b.getAttribute("data-id");
+  render();
+});
+$("#console").addEventListener("change", function(e){
+  var n = e.target.name;
+  if(n === "goal" || n === "airflow" || n === "tol" || n === "cooling" || n === "psu"){
+    if(n === "goal") state.goal = e.target.value;
+    if(n === "airflow") state.airflow = e.target.value;
+    if(n === "tol") state.tol = e.target.value;
+    if(n === "cooling") state.cooling = e.target.value;
+    if(n === "psu") state.psu = e.target.value;
+    render();
+  }
+});
+$("#ambient").addEventListener("input", function(e){
+  state.ambient = +e.target.value;
+  $("#ambientOut").textContent = state.ambient + " °C";
+  render();
+});
+$("#fanBtn").addEventListener("click", function(){
+  var p = $("#fanPanel");
+  p.hidden = !p.hidden;
+});
+$("#copyBtn").addEventListener("click", function(){
+  var r = window.__profile, g = r.g;
+  var lines = [
+    g.n + " — " + VENDOR[g.v].tool,
+    GOALT[state.goal] + " · agresividad " + TOL[state.tol].label + " · " + COOL[state.cooling].label +
+      " · flujo " + AIR[state.airflow].label + " · " + state.ambient + " °C · fuente " + PSU[state.psu].label,
+    ""
+  ];
+  var trs = document.querySelectorAll("#settingsBody tr");
+  for(var i = 0; i < trs.length; i++){
+    var name = trs[i].children[0].textContent;
+    while(name.length < 26) name += " ";
+    lines.push("  " + name + trs[i].children[1].textContent);
+  }
+  lines.push("");
+  lines.push((r.gain >= 0 ? "+" : "") + r.gain.toFixed(1) + " % · " + r.temp + " °C · " + r.powerW + " W · riesgo " + $("#riskLvl").textContent);
+  var txt = lines.join("\n");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ $("#copyState").textContent = "Copiado"; },
+      function(){ $("#copyState").textContent = "No se pudo copiar"; });
+  } else {
+    $("#copyState").textContent = "No se pudo copiar";
+  }
+  setTimeout(function(){ $("#copyState").textContent = ""; }, 2400);
+});
+
+render();
+</script>
+</body>
+</html>
