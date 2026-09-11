@@ -6,9 +6,6 @@ Devuelve valores de arranque ajustados a seis variables — modelo, objetivo, re
 
 Cada fabricante usa sus propios controles: offsets en MHz para NVIDIA (MSI Afterburner), frecuencia máxima y tope de voltaje para AMD (Adrenalin), porcentaje de boost para Intel.
 
-## Uso
-
-Un solo archivo sin dependencias. Abre `index.html` en el navegador, o publícalo con GitHub Pages.
 
 ## Aviso
 
